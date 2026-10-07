@@ -1,8 +1,8 @@
 class Myvault < Formula
   desc "Local-first, CLI-first secret manager for developers"
   homepage "https://github.com/rakshithgoud453/myvault"
-  url "https://github.com/rakshithgoud453/myvault/archive/refs/tags/v0.2.0.tar.gz"
-  sha256 "e75e19b5e996291b2baa32d7f8848ce94f8c3ada95692cedfdf28a1402394cb3"
+  url "https://github.com/rakshithgoud453/myvault/archive/refs/tags/v0.3.0.tar.gz"
+  sha256 "3ea1a323d976e5d44d7fa397c081bea3dc60a4aa732979999fa15b8a55008b95"
   license "MIT"
 
   depends_on "go" => :build
