@@ -1,0 +1,51 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Publish Release Artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Run Unit Tests
+        run: go test -v ./...
+
+      - name: Build Cross-Platform Release Binaries
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          make dist VERSION=${VERSION}
+
+      - name: Create Release Package Archives
+        run: |
+          cd dist
+          tar -czvf myvault-darwin-arm64.tar.gz myvault-darwin-arm64
+          tar -czvf myvault-darwin-amd64.tar.gz myvault-darwin-amd64
+          tar -czvf myvault-linux-amd64.tar.gz myvault-linux-amd64
+          tar -czvf myvault-linux-arm64.tar.gz myvault-linux-arm64
+          zip myvault-windows-amd64.zip myvault-windows-amd64.exe
+          sha256sum *.tar.gz *.zip > checksums.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
+          draft: false
+          prerelease: false
+          generate_release_notes: true
