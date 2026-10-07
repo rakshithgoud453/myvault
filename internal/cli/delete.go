@@ -19,6 +19,19 @@ func init() {
 var deleteCmd = &cobra.Command{
 	Use:     "delete <resource> [field]",
 	Short:   "Delete an entire secret resource or a specific field within a resource",
+	Long: `Delete a secret resource or a specific key-value field from the vault.
+
+Prompts for user confirmation before deleting to prevent accidental data loss. Automatically updates the unencrypted search index.
+
+Examples:
+  # Delete an entire resource and all its fields:
+  myvault delete JUMP_SERVER
+  myvault rm JUMP_SERVER
+
+  # Delete only a specific field from a resource:
+  myvault delete MYSQL old_password
+  myvault rm MYSQL old_password
+`,
 	Aliases: []string{"rm"},
 	Args:    cobra.RangeArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {

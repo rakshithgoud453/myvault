@@ -17,7 +17,15 @@ func init() {
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a new encrypted vault and set master passphrase",
-	Args:  cobra.NoArgs,
+	Long: `Initialize a brand new encrypted vault file (~/.password-vault/vault.age) and set your master passphrase.
+
+Fails safely if a vault already exists at the target location.
+
+Examples:
+  # Initialize a new vault:
+  myvault init
+`,
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		vaultPath, err := storage.DefaultVaultPath()
 		if err != nil {

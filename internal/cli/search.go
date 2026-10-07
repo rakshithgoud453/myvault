@@ -14,6 +14,19 @@ func init() {
 var searchCmd = &cobra.Command{
 	Use:     "search <query>",
 	Short:   "Search across resource names, tags, and field keys/values",
+	Long: `Search across resource names, tags, and field keys/values in the vault.
+
+Returns matching resource names and highlights where the match occurred (e.g. matched on name, tag, or field key).
+
+Examples:
+  # Search for resources matching 'mysql':
+  myvault search mysql
+  myvault find mysql
+
+  # Search for a domain or tag:
+  myvault search visionwaves
+  myvault search work
+`,
 	Aliases: []string{"find"},
 	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {

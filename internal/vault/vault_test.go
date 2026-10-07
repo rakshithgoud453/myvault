@@ -109,6 +109,28 @@ func TestDeleteResourceAndField(t *testing.T) {
 	}
 }
 
+func TestRenameResource(t *testing.T) {
+	v := vault.New()
+	v.SetField("GITHUB_OLD", "username", "octocat", false)
+
+	if err := v.Rename("GITHUB_OLD", "GITHUB_NEW"); err != nil {
+		t.Fatalf("Rename failed: %v", err)
+	}
+
+	if _, _, err := v.Get("GITHUB_OLD"); err == nil {
+		t.Errorf("expected GITHUB_OLD to no longer exist")
+	}
+
+	entry, canonName, err := v.Get("GITHUB_NEW")
+	if err != nil || canonName != "GITHUB_NEW" {
+		t.Fatalf("failed to retrieve GITHUB_NEW: %v", err)
+	}
+
+	if entry.Fields["username"].Value != "octocat" {
+		t.Errorf("expected username octocat, got %s", entry.Fields["username"].Value)
+	}
+}
+
 func TestINIMigrationAndAddNewResource(t *testing.T) {
 	iniData := `[GITHUB]
 username = alice@example.com

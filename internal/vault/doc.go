@@ -309,6 +309,31 @@ func (v *Vault) Delete(name string) error {
 	return nil
 }
 
+// Rename changes the name of a resource from oldName to newName (case-insensitive).
+func (v *Vault) Rename(oldName, newName string) error {
+	entry, oldCanonical, err := v.Get(oldName)
+	if err != nil {
+		return err
+	}
+
+	cleanNew := strings.TrimSpace(newName)
+	if cleanNew == "" {
+		return fmt.Errorf("new resource name cannot be empty")
+	}
+
+	newCanonical := strings.ToUpper(cleanNew)
+	if _, exists := v.Entries[newCanonical]; exists && newCanonical != oldCanonical {
+		return fmt.Errorf("resource %q already exists", newCanonical)
+	}
+
+	entry.ModifiedAt = time.Now()
+	v.Entries[newCanonical] = entry
+	if newCanonical != oldCanonical {
+		delete(v.Entries, oldCanonical)
+	}
+	return nil
+}
+
 // DeleteField removes a specific field from a resource (case-insensitive).
 func (v *Vault) DeleteField(resourceName, fieldName string) error {
 	entry, canonicalResource, err := v.Get(resourceName)

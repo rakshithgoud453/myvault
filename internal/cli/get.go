@@ -17,7 +17,22 @@ func init() {
 var getCmd = &cobra.Command{
 	Use:   "get <resource> [field]",
 	Short: "Get all fields or a specific field for a secret resource",
-	Args:  cobra.RangeArgs(1, 2),
+	Long: `Retrieve and display key-value fields for a secret resource from the vault.
+
+By default, concealed fields (such as passwords, secret keys, and API tokens) are masked as [REDACTED] to prevent accidental screen leaks. Pass '-s' or '--show' to display concealed fields in plaintext.
+
+Examples:
+  # Display all fields for JUMP_SERVER (concealed fields masked):
+  myvault get JUMP_SERVER
+
+  # Display all fields including unmasked passwords:
+  myvault get JUMP_SERVER -s
+
+  # Print only the value of a specific field (e.g. for piping):
+  myvault get JUMP_SERVER hostname
+  myvault get MYSQL password -s
+`,
+	Args: cobra.RangeArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		v, _, err := loadVault()
 		if err != nil {

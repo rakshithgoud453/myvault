@@ -18,7 +18,19 @@ func init() {
 var backupCmd = &cobra.Command{
 	Use:   "backup [target-dir]",
 	Short: "Create a timestamped encrypted snapshot backup of the vault",
-	Args:  cobra.MaximumNArgs(1),
+	Long: `Create an age-encrypted timestamped snapshot backup file (e.g. vault-20261008-013905.bak).
+
+The output backup file is 100% encrypted using your vault passphrase. Zero keys, values, or metadata are exposed.
+
+Examples:
+  # Create a backup snapshot in default ~/.password-vault/backup/ directory:
+  myvault backup
+
+  # Save an encrypted backup snapshot to your Desktop or external drive:
+  myvault backup ~/Desktop/
+  myvault backup /Volumes/SecureUSB/
+`,
+	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		vaultPath, err := storage.DefaultVaultPath()
 		if err != nil {

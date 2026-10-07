@@ -19,7 +19,16 @@ func init() {
 
 var generateCmd = &cobra.Command{
 	Use:   "generate",
-	Short: "Generate a random password",
+	Short: "Generate a cryptographically secure random password",
+	Long: `Generate a cryptographically secure random password (using crypto/rand) and automatically copy it to system clipboard with a 30-second auto-clear timer.
+
+Examples:
+  # Generate default 32-character password:
+  myvault generate
+
+  # Generate custom length password:
+  myvault generate -l 64
+`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pw, err := password.Generate(passwordLength)
 		if err != nil {

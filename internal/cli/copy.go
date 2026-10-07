@@ -15,6 +15,19 @@ func init() {
 var copyCmd = &cobra.Command{
 	Use:     "copy <resource> [field]",
 	Short:   "Copy a field (or default password/secret) to clipboard with 30s auto-clear",
+	Long: `Copy a field value to system clipboard and automatically clear it after 30 seconds to prevent clipboard sniffing or leakage.
+
+If no field name is specified, 'myvault copy' automatically copies the primary secret field (e.g. password, secret, token, or first concealed key).
+
+Examples:
+  # Copy default secret/password of MYSQL to clipboard:
+  myvault copy MYSQL
+  myvault cp MYSQL
+
+  # Copy a specific field value to clipboard:
+  myvault copy JUMP_SERVER hostname
+  myvault cp AWS_PROD access_key
+`,
 	Aliases: []string{"cp"},
 	Args:    cobra.RangeArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {

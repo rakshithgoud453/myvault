@@ -21,6 +21,19 @@ func init() {
 var listCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List all secret resources in the vault (optionally filtered by tag)",
+	Long: `List all secret resource names and their tags in alphabetical order.
+
+'myvault list' reads the unencrypted local metadata index (~/.password-vault/vault.index) and executes in ~2 milliseconds without prompting for your vault passphrase.
+
+Examples:
+  # List all secret resources in your vault:
+  myvault list
+  myvault ls
+
+  # List resources filtered by a specific tag:
+  myvault list --tag work
+  myvault list -t db
+`,
 	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Check policy requirement for list operation (policy.OpList does NOT require passphrase)

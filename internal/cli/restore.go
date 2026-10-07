@@ -21,7 +21,15 @@ func init() {
 var restoreCmd = &cobra.Command{
 	Use:   "restore <snapshot-file>",
 	Short: "Restore vault from an encrypted snapshot backup file",
-	Args:  cobra.ExactArgs(1),
+	Long: `Restore your vault from an age-encrypted snapshot backup file (e.g. vault-*.bak).
+
+Prompts for the passphrase used when the snapshot was created, verifies HMAC integrity, asks for confirmation, and overwrites ~/.password-vault/vault.age and ~/.password-vault/vault.index.
+
+Examples:
+  # Restore vault from a backup snapshot:
+  myvault restore ~/Desktop/vault-20261008-013905.bak
+`,
+	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		snapshotPath := args[0]
 

@@ -17,7 +17,15 @@ func init() {
 var rekeyCmd = &cobra.Command{
 	Use:   "rekey",
 	Short: "Change the master vault passphrase",
-	Args:  cobra.NoArgs,
+	Long: `Re-encrypt the vault file with a new master passphrase.
+
+Prompts for your current passphrase (if not unlocked in an active session) and asks you to type and confirm the new passphrase. Automatically updates active session keyrings.
+
+Examples:
+  # Change your master vault passphrase:
+  myvault rekey
+`,
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// 1. Load vault (verifies current passphrase or session)
 		v, _, err := loadVault()

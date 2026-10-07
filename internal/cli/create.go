@@ -27,7 +27,27 @@ func init() {
 var createCmd = &cobra.Command{
 	Use:   "create <resource> [key=value | key value ...]",
 	Short: "Create a new secret resource (fails if resource already exists)",
-	Args:  cobra.MinimumNArgs(1),
+	Long: `Create a new secret resource in the vault with flexible key-value fields and tags.
+
+Supports both 'key=value' and space-separated 'key value' argument syntax, as well as an interactive prompt loop if no fields are supplied.
+
+Examples:
+  # Create using key=value syntax:
+  myvault create MYSQL host=localhost port=3306 username=root password=secret
+
+  # Create using space-separated syntax:
+  myvault create JUMP_SERVER hostname jump.company.com username admin
+
+  # Create with tags:
+  myvault create GITHUB username=octocat password=secret --tag work --tag dev
+
+  # Interactive creation prompt:
+  myvault create AWS_PROD
+
+  # Generate a random 32-character password automatically:
+  myvault create MY_DATABASE --generate
+`,
+	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
 

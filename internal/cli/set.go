@@ -20,7 +20,24 @@ func init() {
 var setCmd = &cobra.Command{
 	Use:   "set <resource> <key> <value> [key2 value2 | key2=value2 ...]",
 	Short: "Set or update fields in a secret resource (supports both key=value and key value)",
-	Args:  cobra.MinimumNArgs(2),
+	Long: `Set or update key-value fields inside an existing or new secret resource.
+
+Seamlessly supports both 'key=value' and space-separated 'key value' argument syntax. Pass '-c' or '--conceal' to explicitly mark custom fields as concealed/masked.
+
+Examples:
+  # Update a single field (key=value):
+  myvault set JUMP_SERVER hostname=jump.visionwaves.com
+
+  # Update a single field (space-separated):
+  myvault set JUMP_SERVER hostname jump.visionwaves.com
+
+  # Update multiple fields at once:
+  myvault set MYSQL host db.prod.internal port 3306 password newsecret123
+
+  # Force a field to be marked as concealed (masked by default in get):
+  myvault set API_KEY custom_token "secret_val" -c
+`,
+	Args: cobra.MinimumNArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		resourceName := args[0]
 

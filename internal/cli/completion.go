@@ -18,7 +18,7 @@ func init() {
 	rootCmd.AddCommand(completionCmd)
 
 	// Register dynamic resource name completion on commands that take resource names
-	for _, cmd := range []*cobra.Command{getCmd, copyCmd, setCmd, deleteCmd, addCmd, createCmd, execCmd} {
+	for _, cmd := range []*cobra.Command{getCmd, copyCmd, setCmd, deleteCmd, addCmd, createCmd, execCmd, renameCmd} {
 		cmd.ValidArgsFunction = resourceNameCompletion
 	}
 }

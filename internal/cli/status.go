@@ -16,6 +16,12 @@ func init() {
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Show vault status (locked/unlocked, vault path)",
+	Long: `Display current vault status, lock state, session remaining time, and file path locations.
+
+Examples:
+  # Check vault status:
+  myvault status
+`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		vaultPath, err := storage.DefaultVaultPath()
 		if err != nil {
