@@ -111,3 +111,23 @@ func TestFileExportImportCycle(t *testing.T) {
 		t.Fatalf("expected 1 entry, got %d", len(parsed.Entries))
 	}
 }
+
+func TestExecEnvBuilding(t *testing.T) {
+	v := vault.New()
+	v.SetField("MYSQL", "host", "localhost", false)
+	v.SetField("MYSQL", "port", "3306", false)
+	v.SetField("MYSQL", "password", "dbpass123", true)
+
+	entry, canonName, err := v.Get("MYSQL")
+	if err != nil {
+		t.Fatalf("v.Get failed: %v", err)
+	}
+
+	if canonName != "MYSQL" {
+		t.Errorf("expected MYSQL, got %s", canonName)
+	}
+
+	if entry.Fields["host"].Value != "localhost" || entry.Fields["password"].Value != "dbpass123" {
+		t.Errorf("field values mismatch")
+	}
+}

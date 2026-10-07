@@ -9,13 +9,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var auditStaleDays int
+
 func init() {
+	auditCmd.Flags().IntVarP(&auditStaleDays, "stale-days", "d", 90, "Custom age threshold in days to flag stale secrets")
 	rootCmd.AddCommand(auditCmd)
 }
 
 var auditCmd = &cobra.Command{
 	Use:   "audit",
-	Short: "Audit vault passwords for strength, reuse, and staleness",
+	Short: "Audit vault passwords for strength, reuse, staleness, and rotation health",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		v, _, err := loadVault()
@@ -34,7 +37,7 @@ var auditCmd = &cobra.Command{
 		passwordMap := make(map[string][]string) // password -> []resourceName
 
 		now := time.Now()
-		staleThreshold := 180 * 24 * time.Hour // 180 days
+		staleThreshold := time.Duration(auditStaleDays) * 24 * time.Hour
 
 		for _, name := range resources {
 			entry, canonName, _ := v.Get(name)
@@ -67,9 +70,29 @@ var auditCmd = &cobra.Command{
 			}
 		}
 
+		reusedCount := 0
+		for _, usages := range passwordMap {
+			if len(usages) > 1 {
+				reusedCount++
+			}
+		}
+
+		// Calculate Health Grade
+		totalIssues := len(weakPasswords) + reusedCount + len(stalePasswords)
+		grade := "A+"
+		if totalIssues > 0 && totalIssues <= 2 {
+			grade = "B"
+		} else if totalIssues > 2 && totalIssues <= 5 {
+			grade = "C"
+		} else if totalIssues > 5 {
+			grade = "F (Action Required)"
+		}
+
 		fmt.Println("🔍 Vault Password Health Audit Report")
 		fmt.Println("=======================================")
-		fmt.Printf("Total Resources Audited: %d\n\n", len(resources))
+		fmt.Printf("Total Resources Audited : %d\n", len(resources))
+		fmt.Printf("Stale Threshold Age     : %d days\n", auditStaleDays)
+		fmt.Printf("Overall Vault Health    : Grade %s\n\n", grade)
 
 		// 1. Weak Passwords
 		if len(weakPasswords) > 0 {
@@ -83,30 +106,27 @@ var auditCmd = &cobra.Command{
 		}
 
 		// 2. Reused Passwords
-		reusedCount := 0
-		for _, usages := range passwordMap {
-			if len(usages) > 1 {
-				if reusedCount == 0 {
-					fmt.Println("⚠️  Reused Passwords:")
+		if reusedCount > 0 {
+			fmt.Println("⚠️  Reused Passwords:")
+			for _, usages := range passwordMap {
+				if len(usages) > 1 {
+					fmt.Printf("   • Shared across: %s\n", strings.Join(usages, ", "))
 				}
-				reusedCount++
-				fmt.Printf("   • Shared across: %s\n", strings.Join(usages, ", "))
 			}
-		}
-		if reusedCount == 0 {
+		} else {
 			fmt.Println("✅ No reused passwords found.")
 		}
 		fmt.Println()
 
 		// 3. Stale Passwords
 		if len(stalePasswords) > 0 {
-			fmt.Printf("ℹ️  Stale Passwords > 180 days (%d):\n", len(stalePasswords))
+			fmt.Printf("ℹ️  Stale Passwords > %d days (%d):\n", auditStaleDays, len(stalePasswords))
 			for _, s := range stalePasswords {
 				fmt.Printf("   • %s\n", s)
 			}
 			fmt.Println()
 		} else {
-			fmt.Println("✅ All passwords are up to date.")
+			fmt.Printf("✅ All passwords updated within the last %d days.\n", auditStaleDays)
 		}
 
 		return nil
