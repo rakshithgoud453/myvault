@@ -23,24 +23,17 @@ var completionCmd = &cobra.Command{
 	Short: "Generate shell autocompletion script",
 	Long: `Generate shell autocompletion script for zsh, bash, fish, or powershell.
 
-To load completions:
+To load completions in ZSH:
 
-ZSH:
-  # To load completions in your current shell session:
-  source <(myvault completion zsh)
+1. Ensure compinit is enabled in your ~/.zshrc:
+   autoload -U compinit && compinit
 
-  # To load completions permanently:
-  myvault completion zsh > "${fpath[1]}/_myvault"
+2. Source completions in current session:
+   source <(myvault completion zsh)
 
-BASH:
-  # Linux:
-  myvault completion bash > /etc/bash_completion.d/myvault
-
-  # macOS (with bash-completion):
-  myvault completion bash > $(brew --prefix)/etc/bash_completion.d/myvault
-
-FISH:
-  myvault completion fish > ~/.config/fish/completions/myvault.fish
+3. Or add to ~/.zshrc for permanent autocompletion:
+   echo 'autoload -U compinit && compinit' >> ~/.zshrc
+   echo 'source <(myvault completion zsh)' >> ~/.zshrc
 `,
 	ValidArgs: []string{"bash", "zsh", "fish", "powershell"},
 	Args:      cobra.ExactValidArgs(1),
@@ -72,8 +65,10 @@ func resourceNameCompletion(cmd *cobra.Command, args []string, toComplete string
 
 	toComp := strings.ToLower(toComplete)
 	var matches []string
+
 	for _, res := range idx.Resources {
-		if strings.HasPrefix(strings.ToLower(res.Name), toComp) {
+		lowerName := strings.ToLower(res.Name)
+		if toComp == "" || strings.HasPrefix(lowerName, toComp) || strings.Contains(lowerName, toComp) {
 			matches = append(matches, res.Name)
 		}
 	}
