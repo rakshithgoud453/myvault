@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -31,6 +32,19 @@ var importCmd = &cobra.Command{
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			return fmt.Errorf("reading import file: %w", err)
+		}
+
+		// Check if the import file is age-encrypted
+		if bytes.HasPrefix(data, []byte("age-encryption.org")) {
+			importPass, err := promptPassphrase("Enter passphrase for imported file: ")
+			if err != nil {
+				return err
+			}
+			decrypted, err := crypto.Decrypt(data, importPass)
+			if err != nil {
+				return fmt.Errorf("wrong passphrase or invalid encrypted import file: %w", err)
+			}
+			data = decrypted
 		}
 
 		v, passphrase, err := loadVault()

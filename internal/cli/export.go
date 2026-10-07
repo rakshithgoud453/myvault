@@ -10,22 +10,29 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/rakshithgoud453/myvault/internal/crypto"
 	"github.com/rakshithgoud453/myvault/internal/storage"
 )
 
-var exportFormat string
+var (
+	exportFormat   string
+	exportEncrypt  bool
+	exportCustomPw bool
+)
 
 func init() {
 	exportCmd.Flags().StringVarP(&exportFormat, "format", "f", "json", "Export format: json or csv")
+	exportCmd.Flags().BoolVarP(&exportEncrypt, "encrypt", "e", false, "Encrypt the exported output file using age")
+	exportCmd.Flags().BoolVarP(&exportCustomPw, "passphrase", "p", false, "Prompt for a custom export passphrase (used with --encrypt)")
 	rootCmd.AddCommand(exportCmd)
 }
 
 var exportCmd = &cobra.Command{
 	Use:   "export [output-file]",
-	Short: "Export vault entries to JSON or CSV format",
+	Short: "Export vault entries to JSON or CSV format (unencrypted or age-encrypted)",
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		v, _, err := loadVault()
+		v, vaultPassphrase, err := loadVault()
 		if err != nil {
 			return err
 		}
@@ -71,6 +78,33 @@ var exportCmd = &cobra.Command{
 			return fmt.Errorf("unsupported export format %q (use 'json' or 'csv')", exportFormat)
 		}
 
+		if exportEncrypt {
+			encPass := vaultPassphrase
+			if exportCustomPw {
+				p1, err := promptPassphrase("Enter custom export passphrase: ")
+				if err != nil {
+					return err
+				}
+				if p1 == "" {
+					return fmt.Errorf("export passphrase cannot be empty")
+				}
+				p2, err := promptPassphrase("Confirm custom export passphrase: ")
+				if err != nil {
+					return err
+				}
+				if p1 != p2 {
+					return fmt.Errorf("export passphrases do not match")
+				}
+				encPass = p1
+			}
+
+			ciphertext, err := crypto.Encrypt(exportData, encPass)
+			if err != nil {
+				return fmt.Errorf("encrypting export data: %w", err)
+			}
+			exportData = ciphertext
+		}
+
 		// Write to stdout or file
 		if len(args) == 0 {
 			fmt.Print(string(exportData))
@@ -82,7 +116,11 @@ var exportCmd = &cobra.Command{
 			return fmt.Errorf("writing export file: %w", err)
 		}
 
-		fmt.Printf("Vault exported successfully to %s (format: %s).\n", outPath, exportFormat)
+		encLabel := ""
+		if exportEncrypt {
+			encLabel = " (encrypted)"
+		}
+		fmt.Printf("Vault exported successfully%s to %s (format: %s).\n", encLabel, outPath, exportFormat)
 		return nil
 	},
 }

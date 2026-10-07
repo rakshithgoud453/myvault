@@ -63,12 +63,14 @@ func DefaultIndexPath() (string, error) {
 	return filepath.Join(home, VaultDir, IndexFile), nil
 }
 
+var ErrVaultNotFound = fmt.Errorf("vault file does not exist")
+
 // ReadVaultFile reads the encrypted vault file from disk.
 func ReadVaultFile(path string) ([]byte, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("vault not found at %s — run 'myvault init' or 'myvault create' to create one", path)
+			return nil, ErrVaultNotFound
 		}
 		return nil, fmt.Errorf("reading vault file: %w", err)
 	}

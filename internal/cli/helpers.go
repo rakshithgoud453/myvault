@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -27,13 +28,7 @@ func promptPassphrase(prompt string) (string, error) {
 }
 
 // loadVault reads, decrypts, and parses the vault.
-//
-// If an active session exists (vault is unlocked), the cached passphrase
-// is used silently and the session timer is refreshed.
-//
-// If no session exists (vault is locked), the user is prompted for the
-// passphrase interactively.
-//
+// If no vault file exists on disk, it prompts the user to initialize a new vault.
 // Returns the parsed vault and the passphrase (so callers can re-encrypt).
 func loadVault() (*vault.Vault, string, error) {
 	vaultPath, err := storage.DefaultVaultPath()
@@ -43,6 +38,39 @@ func loadVault() (*vault.Vault, string, error) {
 
 	ciphertext, err := storage.ReadVaultFile(vaultPath)
 	if err != nil {
+		if errors.Is(err, storage.ErrVaultNotFound) {
+			fmt.Println("No vault found. Setting up a new vault...")
+			pass1, err := promptPassphrase("Set master passphrase: ")
+			if err != nil {
+				return nil, "", err
+			}
+			if pass1 == "" {
+				return nil, "", fmt.Errorf("passphrase cannot be empty")
+			}
+			pass2, err := promptPassphrase("Confirm master passphrase: ")
+			if err != nil {
+				return nil, "", err
+			}
+			if pass1 != pass2 {
+				return nil, "", fmt.Errorf("passphrases do not match")
+			}
+
+			v := vault.New()
+			serialized, err := v.Serialize()
+			if err != nil {
+				return nil, "", err
+			}
+			enc, err := crypto.Encrypt(serialized, pass1)
+			if err != nil {
+				return nil, "", err
+			}
+			if err := storage.WriteVaultFile(vaultPath, enc); err != nil {
+				return nil, "", fmt.Errorf("writing vault file: %w", err)
+			}
+			_ = storage.WriteVaultIndex(v.BuildIndex())
+			fmt.Println("New vault initialized successfully.")
+			return v, pass1, nil
+		}
 		return nil, "", err
 	}
 
