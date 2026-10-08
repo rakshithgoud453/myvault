@@ -138,8 +138,8 @@ func resourceNameCompletion(cmd *cobra.Command, args []string, toComplete string
 	}
 
 	idx, err := storage.ReadVaultIndex()
-	if err != nil || idx == nil {
-		return nil, cobra.ShellCompDirectiveNoFileComp
+	if err != nil || idx == nil || len(idx.Resources) == 0 {
+		return []string{"(vault is empty)"}, cobra.ShellCompDirectiveNoFileComp
 	}
 
 	toComp := strings.ToLower(toComplete)
@@ -150,6 +150,10 @@ func resourceNameCompletion(cmd *cobra.Command, args []string, toComplete string
 		if toComp == "" || strings.HasPrefix(lowerName, toComp) || strings.Contains(lowerName, toComp) {
 			matches = append(matches, res.Name)
 		}
+	}
+
+	if len(matches) == 0 {
+		return []string{"(no matching vault resource)"}, cobra.ShellCompDirectiveNoFileComp
 	}
 
 	return matches, cobra.ShellCompDirectiveNoFileComp

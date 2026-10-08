@@ -1,4 +1,4 @@
-VERSION ?= 0.4.1
+VERSION ?= 0.4.2
 COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 LDFLAGS := -X github.com/rakshithgoud453/myvault/internal/cli.Version=$(VERSION) -w -s
 
